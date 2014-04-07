@@ -1,0 +1,28 @@
+PREFIX np:     <http://www.nanopub.org/nschema#>
+PREFIX rso: <http://rdf.biosemantics.org/ontologies/referencesequence#>
+PREFIX so:     <http://purl.org/obo/owl/SO#>
+PREFIX glycO: <http://glycomics.ccrc.uga.edu/ontologies/GlycO#>
+PREFIX esg: <http://dataportal.ucar.edu/schemas/esg.owl#>
+
+SELECT ?cageCluster ?cageStart ?cageEnd where {
+  
+  graph ?rikenAssertion2 {
+    
+  ?cageCluster rso:mapsTo ?cageClusterRegion.  
+  ?cageClusterRegion  rso:start ?cageStart;
+                      rso:end ?cageEnd;
+                      rso:regionOf ?cageChromosome.    
+  }
+
+  filter(
+   (26926015 >= ?cageStart && 26926015 <= ?cageEnd)   ||  (26926005 >= ?cageStart && 26926005 <=?cageEnd) || 
+    (26926005 < ?cageStart && 26926015 > ?cageEnd)
+  )
+
+graph ?rikenAssertion1 {
+  
+  ?cageCluster rso:is_observation_of ?tss.
+    
+  } 
+    
+} limit 10
