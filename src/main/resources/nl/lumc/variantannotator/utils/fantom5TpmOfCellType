@@ -1,0 +1,17 @@
+PREFIX rso: <http://rdf.biosemantics.org/ontologies/referencesequence#>
+PREFIX so:     <http://purl.org/obo/owl/SO#>
+PREFIX ff: <http://purl.obolibrary.org/obo/>
+
+select ?tpmValue ?cellTypeURI {  
+
+     graph ?rikenAssertion3 {
+       ?cageCluster so:associated_with ?measurementValues;
+                    rso:observed_in ?cellType.
+       ?measurementValues ff:IAO_0000004 ?tpmValue.
+       
+       FILTER (?tpmValue > 0)
+     }
+
+  BIND (?cellType AS ?cellTypeURI)
+
+}

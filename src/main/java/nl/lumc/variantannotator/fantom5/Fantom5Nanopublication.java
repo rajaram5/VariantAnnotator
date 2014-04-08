@@ -8,17 +8,15 @@ package nl.lumc.variantannotator.fantom5;
 
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ParameterizedSparqlString;
-import com.hp.hpl.jena.query.QuerySolutionMap;
 import com.hp.hpl.jena.query.ResultSet;
-import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.rdf.model.ModelFactory;
-import com.hp.hpl.jena.rdf.model.RDFNode;
 import java.util.ArrayList;
 import java.util.List;
 import nl.lumc.variantannotator.pojo.Fantom5;
 import nl.lumc.variantannotator.pojo.Fantom5CellType;
 import nl.lumc.variantannotator.sparql.SPARQLQuery;
 import nl.lumc.variantannotator.utils.FileOperation;
+import org.apache.jena.iri.IRI;
+import static org.apache.jena.riot.system.IRIResolver.iriFactory;
 
 /**
  *
@@ -55,17 +53,15 @@ public class Fantom5Nanopublication {
         String query = FileOperation.getQueryAsString("fantom5TSS");
         
         ParameterizedSparqlString queryString = new 
-        ParameterizedSparqlString(query);
-        
+        ParameterizedSparqlString(query);        
         queryString.setLiteral("?variantStart", variantStart);
         queryString.setLiteral("?variantEnd", variantEnd);
-        queryString.setIri("?variantChromosome", 
+        
+        IRI iriChromosome = iriFactory.create(
                 ("http://rdf.biosemantics.org/data/genomeassemblies/hg19#chr"
                         +variantChromosome));
         
-//        query = query.replace("#variantStart", String.valueOf(variantStart));
-//        query = query.replace("#variantEnd", String.valueOf(variantEnd));
-//        query = query.replace("#variantChromosome", variantChromosome);
+        queryString.setIri("?variantChromosome", iriChromosome);        
         
         SPARQLQuery sparqlQuery = new SPARQLQuery(endpoint);
         
@@ -77,7 +73,9 @@ public class Fantom5Nanopublication {
             Fantom5 data = new Fantom5();
             data.setTssStart(qs.getLiteral("cageStart").getInt());
             data.setTssEnd(qs.getLiteral("cageEnd").getInt());
-            data.setAnnotation(qs.getResource("cageCluster").getURI());    
+            data.setAnnotation(qs.getResource("cageCluster").getURI()); 
+            data.setOrientation(qs.getResource("cageOrientation").getURI());
+            data.setChromosome(qs.getResource("cageChromosome").getURI());
             
             content.add(data);
         }
@@ -103,10 +101,6 @@ public class Fantom5Nanopublication {
         String query = FileOperation.
                 getQueryAsString("fantom5TSSOfEntrezGeneID");
         
-        //query = query.replace("#ID", String.valueOf(geneID));
-        
-
-   
         ParameterizedSparqlString queryString = new 
         ParameterizedSparqlString(query);
         
@@ -115,7 +109,6 @@ public class Fantom5Nanopublication {
         
         SPARQLQuery sparqlQuery = new SPARQLQuery(endpoint);
         
-        //ResultSet results = sparqlQuery.exceuateQuery(query);
         ResultSet results = sparqlQuery.exceuateQuery(queryString);
         
         while (results.hasNext()) {
@@ -123,7 +116,9 @@ public class Fantom5Nanopublication {
             Fantom5 data = new Fantom5();
             data.setTssStart(qs.getLiteral("cageStart").getInt());
             data.setTssEnd(qs.getLiteral("cageEnd").getInt());
-            data.setAnnotation(qs.getResource("cageCluster").getURI());    
+            data.setAnnotation(qs.getResource("cageCluster").getURI());
+            data.setOrientation(qs.getResource("cageOrientation").getURI());
+            data.setChromosome(qs.getResource("cageChromosome").getURI());
             
             content.add(data);
         }
@@ -155,13 +150,48 @@ public class Fantom5Nanopublication {
             
         while (results.hasNext()) {                
             QuerySolution qs = results.next();                
-            Fantom5CellType cellType = new Fantom5CellType();                
-            cellType.setUri(qs.getResource("cellType").getURI());                
-            cellType.setId(qs.getResource("cellType").getLocalName());                
-            cellType.setTpmValue(qs.getLiteral("tpmValue").getDouble()); 
-            content.add(cellType);            
+            Fantom5CellType data = new Fantom5CellType();                
+            data.setUri(qs.getResource("cellType").getURI());                
+            data.setId(qs.getResource("cellType").getLocalName());                
+            data.setTpmValue(qs.getLiteral("tpmValue").getDouble()); 
+            content.add(data);            
         }
         return content;
     }
+    
+    /**
+     * <P>
+     * Get tpm value for the given cellType and cageCluster annotation URI.
+     * </P>
+     * @param annotationURI CageCluster annotation URI. 
+     * @param cellType  Cell type URI.
+     * @return  Cell type tpm value 
+     */
+    public Fantom5CellType getTpmValue (String annotationURI, 
+            String cellTypeURI) {
+        
+        Fantom5CellType content = new Fantom5CellType();    
+        String query = FileOperation.getQueryAsString("fantom5TpmOfCellType");  
+        ParameterizedSparqlString queryString = new 
+        ParameterizedSparqlString(query);
+        IRI iriAnnotation = iriFactory.create(annotationURI);
+        IRI iriCellType = iriFactory.create(cellTypeURI);
+        
+        queryString.setIri("?cageCluster", iriAnnotation);
+        queryString.setIri("?cellType", iriCellType);
+        
+        SPARQLQuery sparqlQuery = new SPARQLQuery(endpoint);
+        //query = query.replace("#cageCluster", (annotationURI));            
+        ResultSet results = sparqlQuery.exceuateQuery(queryString);
+            
+        while (results.hasNext()) {             
+            QuerySolution qs = results.next(); 
+            content.setTpmValue(qs.getLiteral("tpmValue").getDouble());
+            content.setUri(qs.getResource("cellTypeURI").getURI());
+            content.setId(qs.getResource("cellTypeURI").getLocalName());
+        }
+        return content;
+    }
+    
     
 }

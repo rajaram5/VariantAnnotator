@@ -3,15 +3,18 @@ PREFIX rso: <http://rdf.biosemantics.org/ontologies/referencesequence#>
 PREFIX so:     <http://purl.org/obo/owl/SO#>
 PREFIX hg19: <http://rdf.biosemantics.org/data/genomeassemblies/hg19#>
 
-SELECT ?cageCluster ?cageStart ?cageEnd where {
+SELECT ?cageCluster ?cageStart ?cageEnd ?cageChromosome ?cageOrientation where {
   
   graph ?rikenAssertion2 {
     
   ?cageCluster rso:mapsTo ?cageClusterRegion.  
   ?cageClusterRegion  rso:start ?cageStart;
                       rso:end ?cageEnd;
-                      rso:regionOf ?variantChromosome.    
+                      rso:regionOf ?variantChromosome;
+                      rso:hasOrientation ?cageOrientation.     
   }
+
+  BIND (?variantChromosome AS ?cageChromosome) 
 
   filter(
    (?variantEnd >= ?cageStart && ?variantEnd <= ?cageEnd)   ||  (?variantStart >= ?cageStart && ?variantStart <=?cageEnd) || 

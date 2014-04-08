@@ -10,6 +10,7 @@ import java.util.List;
 import nl.lumc.variantannotator.pojo.Fantom5;
 import nl.lumc.variantannotator.pojo.Fantom5CellType;
 import static org.junit.Assert.assertEquals;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -34,6 +35,9 @@ public class Fantom5NanopublicationTest {
         String annotationURI = "http://rdf.biosemantics.org/data/riken/"
                 + "fantom5/data#chr20:31350184..31350200,+";
         
+        String orientation = "http://rdf.biosemantics.org"
+                + "/ontologies/referencesequence#forward";
+        
         
         long t1 = System.currentTimeMillis();        
         List<Fantom5> content = test.getTSS(start, end, chromosome);
@@ -45,6 +49,7 @@ public class Fantom5NanopublicationTest {
         assertEquals(annotationURI, content.get(0).getAnnotation());
         assertEquals(31350184, content.get(0).getTssStart());
         assertEquals(31350200, content.get(0).getTssEnd());
+        assertEquals(orientation, content.get(0).getOrientation());
     }
     
     
@@ -76,6 +81,27 @@ public class Fantom5NanopublicationTest {
         System.out.println("Time taken for the query = " +(t2-t1));    
         
         assertEquals(4, content.size());
+    }
+    
+    
+    @Test
+    public void vaildAnnotationAndCellType () {   
+        
+        String annotationURI = "http://rdf.biosemantics.org/data/"
+                + "riken/fantom5/data#chr20:31350184..31350200,+";
+        String cellType = "http://purl.obolibrary.org/obo/FF_11397-118D2";
+        
+        long t1 = System.currentTimeMillis();        
+        Fantom5CellType content = test.
+                getTpmValue(annotationURI, cellType);
+        long t2 = System.currentTimeMillis();   
+        System.out.println("Query: Top cell types tpm value");
+        System.out.println("Time taken for the query = " +(t2-t1));    
+        
+        
+        assertEquals(4.77269, content.getTpmValue(), 0.00001);
+        assertEquals(cellType, content.getUri());
+        assertEquals("FF_11397-118D2", content.getId());
     }
     
 }
