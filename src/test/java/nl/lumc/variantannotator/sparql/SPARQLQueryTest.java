@@ -25,9 +25,7 @@ public class SPARQLQueryTest {
     
     @Test
     public void vaildQuery () {
-        
-        System.out.println(FileOperation.getFilePath("query1"));
-        
+                
         String endpoint = "http://ep.dbcls.jp/fantom5/sparql"; 
         String query = FileOperation.getQueryAsString("query1");
         
